@@ -1,0 +1,2 @@
+def get_files_include_augmentations(file_list, augmentations, all_images):
+    return list(filter(lambda x: (True in map(lambda y: y in x, augmentations) and x.split('_')[0] + '.jpg' in file_list) or x in file_list, all_images))
