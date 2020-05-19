@@ -1,24 +1,17 @@
 # ## Imports
 
 
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import numpy as np  # linear algebra
+import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import itertools
 from tensorflow.keras.utils import Sequence
 import cv2
 from segmentation_models import Unet
-import tensorflow as tf
-import keras
-from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Concatenate, Activation, Softmax, Conv2DTranspose, Dropout
-from keras.models import Model, load_model
 import keras.backend as K
-from keras.layers.merge import concatenate
 from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import ModelCheckpoint
 import os
-import random
 from sklearn.model_selection import train_test_split
 import time
 
@@ -46,16 +39,8 @@ filtered_train_images = list(filter(lambda x: '_' not in x, train_images_files))
 #filtered_train_images = random.sample(filtered_train_images, 50)
 
 
-# In[7]:
-
-
-train_images_files
-
 
 # ## Functions for conversions between rle and mask represantations
-
-# In[8]:
-
 
 def rle2mask(height, width, encoded):
     '''
@@ -123,59 +108,8 @@ def get_segmentations(filename, df):
     return df[df.Image_Label.str.contains(filename)]
 
 
-# In[12]:
 
-
-def plot_image_with_rle(filename, folder, segmentations):
-    #segmentations are in run length format
-    labels = ['Fish', 'Flower', 'Gravel', 'Sugar']
-    filepath = os.path.join(folder, filename)
-    img = mpimg.imread(filepath)
-    fig, axs = plt.subplots(4, figsize = (10, 15))
-    for i in range(4):
-        axs[i].imshow(img)
-        axs[i].set_title(labels[i], fontsize = 20)
-        segment = segmentations[segmentations.Image_Label == filename + '_' + labels[i]].EncodedPixels.values[0]
-        mask = rle2mask(320, 480, segment)
-        axs[i].imshow(mask, alpha = 0.5, cmap = 'gray')
-    fig.suptitle('Segmentations for ' + filename, fontsize = 24, y = 1.08)
-    plt.tight_layout(h_pad=1)
     
-
-
-# In[13]:
-
-
-def plot_image_with_masks(filename, folder, segmentattions_df, mask_height = 1400, mask_width = 2100, rle_height = 1400, rle_width = 2100):
-    masks = get_image_masks(filename, folder, segmentattions_df, mask_height, mask_width, rle_height, rle_width)
-    labels = ['Fish', 'Flower', 'Gravel', 'Sugar']
-    filepath = os.path.join(folder, filename)
-    img = mpimg.imread(filepath)
-    fig, axs = plt.subplots(4, figsize = (10, 15))
-    for i in range(4):
-        axs[i].imshow(img)
-        axs[i].set_title(labels[i], fontsize = 20)
-        axs[i].imshow(masks[:, :, i], alpha = 0.5, cmap = 'gray')
-    fig.suptitle('Segmentations for ' + filename, fontsize = 24, y = 1.08)
-    plt.tight_layout(h_pad=1)
-
-
-# In[14]:
-
-
-def plot_image_given_masks(image, masks):
-    fig, axs = plt.subplots(4, figsize = (10, 15))
-    for i in range(4):
-        axs[i].imshow(image)
-        axs[i].set_title(labels[i], fontsize = 20)
-        axs[i].imshow(masks[:, :, i], alpha = 0.5, cmap = 'gray')
-    plt.tight_layout(h_pad=1)
-
-
-# ## Functions for calculating the dice coefficient and loss
-
-# In[15]:
-
 
 from keras.losses import  binary_crossentropy
 def dice_loss(y_true, y_pred):
@@ -232,18 +166,6 @@ def mean_dice_coef(datagen, preds):
 
 def get_files_include_augmentations(file_list, augmentations, all_images):
     return list(filter(lambda x: (True in map(lambda y: y in x, augmentations) and x.split('_')[0] + '.jpg' in file_list) or x in file_list, all_images))
-
-
-# In[20]:
-
-
-#get_files_include_augmentations(['c9e7adc.jpg', 'b09b94a.jpg', '58b8f5f.jpg'], ['horizontal', 'vertical', 'aug_composition'], train_images_files)
-#get_files_include_augmentations(['c9e7adc.jpg', 'b09b94a.jpg', '58b8f5f.jpg'], [], train_images_files)
-
-
-# There is not enough space to store all the images, so we will have to load them per batch: https://towardsdatascience.com/keras-data-generators-and-how-to-use-them-b69129ed779c
-
-# In[21]:
 
 
 class DataGenerator(Sequence):
@@ -360,67 +282,6 @@ def predict_dataset(model, folder, file_list, resize = (320, 480), threshold = 0
     return res_df, preds
 
 
-# ## Understanding the data
-
-# In[24]:
-
-
-#train_df.head()
-
-
-# *** Draw segmentations on a random sample of the train images ***
-
-# In[25]:
-
-
-#plot segmentations of 10 random images
-#import random
-#images_to_plot = random.sample(train_images_files, 10)
-#for image in images_to_plot:
-#    plot_image_with_rle(image, train_images_folder, get_segmentations(image, train_df))
-
-
-# In[26]:
-
-
-#import random
-#images_to_plot = random.sample(train_images_files, 30)
-#for image in images_to_plot:
-#    plt.figure()
-#    plt.imshow(plt.imread(os.path.join(train_images_folder, image)))
-
-
-# **Observations**:
-# 
-# 1. Types tend to overlap. Fish segments tend to overlap with Flower segments, and Gravel segments tend to overlap with Sugar segments. How do you determine the boundry between 2 types? can they be mixed?
-# 2. The segments are rectangular or composed of the union of several rectangles(from different labelers).
-# 3. The difference between the cloud categories is the texture, so we will need to use an algorithm that is good at detecting texture
-# 4. The output of the network can be either bounding boxes(like YOLO) or per pixel classification(like https://www.sciencedirect.com/science/article/pii/S0034425719301294#bb0120) need to read articles to see the common approach.
-# 5. Should I use one CNN for detecting clouds and one for classifying them, or one for both detection and classification?
-# 6. Do I need to use data augmentation? are the aprox. 5400 images enough data?
-# 7. Can I apply transfer learning?
-# 8. Is size a factor here? yes, according to the paper linked in the competition different categories have different average sizes
-# 9. All the images are taken above the ocean, will it be able to work for images above land and does it matter to us?(are there test images taken above land?)
-
-# ** Plot histogram of cloud formation types **
-
-# In[27]:
-
-
-#train_df.iloc[0].Image_Label.split('_')[1]
-#non_null_df = train_df.loc[train_df.EncodedPixels.notna()]
-#non_null_df['category'] = non_null_df.Image_Label.map(lambda x: x.split('_')[1])
-#non_null_df.category.value_counts().plot(kind = 'bar')
-
-
-# the categories are not balanced, need to think if there are implications to this and do we need stratification of the train set
-
-# Seems like the Unet model is the way to go, let's try
-
-# ** Training **
-
-# In[28]:
-
 
 def train(model_function,train_images, val_images, epochs, learning_rate = 0.001, augmentations = []):
     
@@ -462,96 +323,30 @@ def unet_efficientnet():
 train_images, val_images = train_test_split(filtered_train_images, train_size = 0.80)
 
 
-# In[31]:
-
-
 model, metrics_history = train(unet_efficientnet,  train_images, val_images, epochs = 3, learning_rate = 0.0001, augmentations = ['vertical', 'horizontal', 'rotated_45'])
 plot_metrics(metrics_history)
 
 
-# In[ ]:
-
-
-#curr_val_df, history = predict_dataset(model, train_images_folder, curr_val_images[:20])
+#test_df, test_masks = predict_dataset(model, test_images_folder, test_images_list[:200])
 
 
 # In[ ]:
 
 
 #import random
-#images_to_plot = random.sample(curr_val_images[:20], 10)
+#images_to_plot = random.sample(test_images_list[:200], 10)
 #for image in images_to_plot:
-#    plot_image_with_rle(image, train_images_folder, curr_val_df)
-
-
-# ### submission
-
-# In[ ]:
-
-
-#model = load_model('best_model_unet_efficientnetb01589357716.h5', custom_objects = {'bce_dice_loss': bce_dice_loss, 'dice_coef_tf': dice_coef_tf})
-
-
-# In[ ]:
-
-
-#val_dg = DataGenerator(train_images_folder, curr_val_images, train_df, 480, 320, 480, 320, labels, batch_size = 16)
-#val_df, val_masks = predict_dataset(model, train_images_folder, curr_val_images, threshold=0.7)
-#mean_dice_coeff_val = mean_dice_coef(val_dg ,val_masks)
-#print(mean_dice_coeff_val)
-#import random
-#images_to_plot = random.sample(curr_val_images, 10)
-#for image in images_to_plot:
-#    plot_image_with_rle(image, train_images_folder, val_df)
-
-
-# In[ ]:
-
-
-test_df, test_masks = predict_dataset(model, test_images_folder, test_images_list[:200])
-
-
-# In[ ]:
-
-
-import random
-images_to_plot = random.sample(test_images_list[:200], 10)
-for image in images_to_plot:
-    plot_image_with_rle(image, test_images_folder, test_df)
-
-
-# In[ ]:
-
-
-sub_df, history = predict_dataset(model, test_images_folder, test_images_list, resize = (350, 525), threshold=0.5)
-
-
-# In[ ]:
-
-
-#sub_df = pd.read_csv('/kaggle/input/submission/submission.csv')
-
-
-# In[ ]:
-
-
-sub_df = sub_df[['Image_Label', 'EncodedPixels']]
-
-
-# In[ ]:
-
-
-sub_df.set_index('Image_Label', inplace = True)
-
-
-# In[ ]:
-
-
-sub_df.to_csv('submission.csv')
-
-
-# In[ ]:
+#    plot_image_with_rle(image, test_images_folder, test_df)
 
 
 
 
+#sub_df, history = predict_dataset(model, test_images_folder, test_images_list, resize = (350, 525), threshold=0.5)
+
+
+
+#sub_df = sub_df[['Image_Label', 'EncodedPixels']]
+
+#sub_df.set_index('Image_Label', inplace = True)
+
+#sub_df.to_csv('submission.csv')
