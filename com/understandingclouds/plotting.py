@@ -25,23 +25,25 @@ def plot_image_with_rle(filename, folder, segmentations):
     plt.show()
 
 
-def plot_image_with_masks(filename, folder, segmentattions_df, mask_height = 1400, mask_width = 2100, rle_height = 1400, rle_width = 2100):
+def plot_image_with_masks(filename, folder, segmentattions_df, mask_height=1400, mask_width=2100, rle_height=1400,
+                          rle_width=2100):
     masks = get_image_masks(filename, folder, segmentattions_df, mask_height, mask_width, rle_height, rle_width)
     filepath = os.path.join(folder, filename)
     img = mpimg.imread(filepath)
-    fig, axs = plt.subplots(4, figsize = (10, 15))
+    fig, axs = plt.subplots(4, figsize=(10, 15))
     for i in range(4):
         axs[i].imshow(img)
-        axs[i].set_title(LABELS[i], fontsize = 20)
-        axs[i].imshow(masks[:, :, i], alpha = 0.5, cmap = 'gray')
-    fig.suptitle('Segmentations for ' + filename, fontsize = 24, y = 1.08)
+        axs[i].set_title(LABELS[i], fontsize=20)
+        axs[i].imshow(masks[:, :, i], alpha=0.5, cmap='gray')
+    fig.suptitle('Segmentations for ' + filename, fontsize=24, y=1.08)
     plt.tight_layout(h_pad=1)
 
 
 def plot_image_given_masks(image, masks):
-    fig, axs = plt.subplots(4, figsize = (10, 15))
+    fig, axs = plt.subplots(4, figsize=(10, 15))
     for i in range(4):
         axs[i].imshow(image)
-        axs[i].set_title(LABELS[i], fontsize = 20)
-        axs[i].imshow(masks[:, :, i], alpha = 0.5, cmap = 'gray')
-    plt.tight_layout(h_pad=1)
+        axs[i].set_title(LABELS[i], fontsize=10)
+        axs[i].imshow(masks[:, :, i], alpha=0.5, cmap='gray')
+    plt.tight_layout(h_pad=2)
+    plt.show()

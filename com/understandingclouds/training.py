@@ -12,28 +12,32 @@ import os
 import matplotlib.pyplot as plt
 
 
-def train(model_function,train_images, val_images, epochs, learning_rate = 0.001, augmentations = []):
-
+def train(model_function, train_images, val_images, epochs, learning_rate=0.001, augmentations=[]):
     train_df = pd.read_csv(TRAIN_DF_FILE)
     train_images = get_files_include_augmentations(train_images, augmentations, train_images_files)
-    train_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, train_images, train_df, 480, 320, 480, 320, LABELS, batch_size = 1)
-    validation_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, val_images, train_df, 480, 320, 480, 320, LABELS, batch_size = 1)
+    train_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, train_images, train_df, 480, 320, 480, 320, LABELS,
+                                         batch_size=1)
+    validation_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, val_images, train_df, 480, 320, 480, 320, LABELS,
+                                              batch_size=1)
     # setup early stopping
-    #es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5, min_delta=0.01)
+    # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5, min_delta=0.01)
 
-    #callbacks = [es]
-    mc = ModelCheckpoint('best_model_unet_efficientnetb0' + str(int(time.time())) + '.h5', monitor='val_dice_coef_tf', mode='min', save_best_only=False)
+    # callbacks = [es]
+    mc = ModelCheckpoint('best_model_unet_efficientnetb0' + str(int(time.time())) + '.h5', monitor='val_dice_coef_tf',
+                         mode='min', save_best_only=False)
     callbacks = [mc]
-   # if model_checkpoint_callback is not None:
-   #     callbacks.append(model_checkpoint_callback)
+    # if model_checkpoint_callback is not None:
+    #     callbacks.append(model_checkpoint_callback)
     unet_model = model_function()
-    #unet_model.compile(optimizer=Adam(learning_rate), loss = 'binary_crossentropy', metrics = [dice_coef_tf])
-    unet_model.compile(optimizer=Adam(learning_rate), loss = bce_dice_loss, metrics = [dice_coef_tf])
-    #unet_model.compile(optimizer='adam', loss = bce_dice_loss, metrics = [dice_coef_tf])
+    # unet_model.compile(optimizer=Adam(learning_rate), loss = 'binary_crossentropy', metrics = [dice_coef_tf])
+    unet_model.compile(optimizer=Adam(learning_rate), loss=bce_dice_loss, metrics=[dice_coef_tf])
+    # unet_model.compile(optimizer='adam', loss = bce_dice_loss, metrics = [dice_coef_tf])
 
     unet_model.summary()
-    history = unet_model.fit_generator(train_data_generator, validation_data = validation_data_generator, epochs = epochs, callbacks = callbacks)
+    history = unet_model.fit_generator(train_data_generator, validation_data=validation_data_generator, epochs=epochs,
+                                       callbacks=callbacks)
     return unet_model, history
+
 
 def unet_efficientnet():
     model = Unet('efficientnetb0', input_shape=(320, 480, 3), encoder_weights='imagenet', classes=4,

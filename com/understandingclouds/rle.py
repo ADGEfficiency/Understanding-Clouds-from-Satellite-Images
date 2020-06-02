@@ -1,6 +1,7 @@
 import matplotlib.image as mpimg
 import cv2
 import numpy as np
+import pandas as pd
 import os
 from com.understandingclouds.constants import LABELS
 
@@ -28,8 +29,10 @@ def get_image_masks(filename, folder, segmentations_df, mask_height=1400, mask_w
     filepath = os.path.join(folder, filename)
     image = mpimg.imread(filepath)
     masks = np.zeros((mask_height, mask_width, len(LABELS)))
-    for i in range(4):
-        segment = segmentations_df[segmentations_df.Image_Label == filename + '_' + LABELS[i]].EncodedPixels.values[0]
+    for i in range(len(LABELS)):
+        segment_df = segmentations_df[segmentations_df.Image_Label == filename + '_' + LABELS[i]]
+        assert len(segment_df) == 1
+        segment = segment_df.iloc[0].EncodedPixels
         mask = rle2mask(rle_height, rle_width, segment)
         if (mask.shape[0] != mask_height) or (mask.shape[1] != mask_width):
             mask = cv2.resize(mask, (mask_width, mask_height))
@@ -49,8 +52,7 @@ def mask_to_rle(img):
 
 
 def masks_to_rle(filename, masks):
-    labels = ['Fish', 'Flower', 'Gravel', 'Sugar']
     seg_dict = {}
-    for i in range(len(labels)):
-        seg_dict[filename, '_', labels[i]] = mask_to_rle(masks[i])
+    for i in range(len(LABELS)):
+        seg_dict[filename, '_', LABELS[i]] = mask_to_rle(masks[:, :, i])
     return pd.DataFrame(seg_dict.items(), columns=['Image_Label', 'EncodedPixels'])
