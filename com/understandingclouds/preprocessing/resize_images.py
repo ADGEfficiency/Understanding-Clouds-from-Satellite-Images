@@ -9,6 +9,7 @@ from com.understandingclouds.rle import masks_to_rle
 train_images_files = [file for file in os.listdir(TRAIN_IMAGES_FOLDER) if os.path.isfile(os.path.join(
     TRAIN_IMAGES_FOLDER, file))]
 train_df = pd.read_csv(DATA_DIR + 'train.csv')
+train_df = train_df[['Image_Label', 'EncodedPixels']]
 train_resized_df = pd.DataFrame(columns=train_df.columns)
 aug_folder = 'images_augmented/'
 if not os.path.isdir(aug_folder):

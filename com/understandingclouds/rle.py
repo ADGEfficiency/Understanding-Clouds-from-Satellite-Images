@@ -54,5 +54,5 @@ def mask_to_rle(img):
 def masks_to_rle(filename, masks):
     seg_dict = {}
     for i in range(len(LABELS)):
-        seg_dict[filename, '_', LABELS[i]] = mask_to_rle(masks[:, :, i])
+        seg_dict[filename + '_' + LABELS[i]] = mask_to_rle(masks[:, :, i])
     return pd.DataFrame(seg_dict.items(), columns=['Image_Label', 'EncodedPixels'])

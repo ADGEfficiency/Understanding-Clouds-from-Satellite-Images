@@ -2,13 +2,14 @@ from albumentations import HorizontalFlip, VerticalFlip, Rotate
 from com.understandingclouds.data_generator import DataGenerator
 from com.understandingclouds.constants import LABELS, TRAIN_IMAGES_FOLDER, DATA_DIR
 import matplotlib.pyplot as plt
-from com.understandingclouds.plotting import get_image_masks, masks_to_rle
+from com.understandingclouds.plotting import get_image_masks
+from com.understandingclouds.rle import masks_to_rle
 import os
 import pandas as pd
 
 train_images_files = [f for f in os.listdir(TRAIN_IMAGES_FOLDER) if
                       os.path.isfile(os.path.join(TRAIN_IMAGES_FOLDER, f))]
-#train_images_files = train_images_files[:5]
+#train_images_files = train_images_files[:10]
 train_df = pd.read_csv(DATA_DIR + 'train.csv')
 aug_train_df = pd.read_csv('train_resized.csv')
 dg = DataGenerator(TRAIN_IMAGES_FOLDER, train_images_files, train_df, 480, 320, 480, 320, LABELS)
