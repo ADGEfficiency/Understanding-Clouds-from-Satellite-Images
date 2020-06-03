@@ -13,6 +13,7 @@ train_df = pd.read_csv(DATA_DIR + 'train.csv')
 aug_train_df = pd.read_csv('train_resized.csv')
 dg = DataGenerator(TRAIN_IMAGES_FOLDER, train_images_files, train_df, 480, 320, 480, 320, LABELS)
 train_df = train_df[['Image_Label', 'EncodedPixels']]
+aug_train_df = aug_train_df[['Image_Label', 'EncodedPixels']]
 
 aug_names = ['horizontal_flip', 'vertical_flip', 'rotate45']
 augs = [HorizontalFlip(p=1), VerticalFlip(p=1), Rotate(limit=(45, 45), p=1)]
@@ -36,4 +37,4 @@ for file in train_images_files:
         #plot_image_given_masks(augmented_img, augmented_masks)
 
 
-train_df.to_csv('augmented_train_df.csv')
+aug_train_df.to_csv('augmented_train_df.csv')
