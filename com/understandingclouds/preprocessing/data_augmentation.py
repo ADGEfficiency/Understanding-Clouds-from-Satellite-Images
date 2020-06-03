@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from com.understandingclouds.plotting import get_image_masks, masks_to_rle
 import os
 import pandas as pd
-from plotting import plot_image_given_masks
 
 train_images_files = [f for f in os.listdir(TRAIN_IMAGES_FOLDER) if
                       os.path.isfile(os.path.join(TRAIN_IMAGES_FOLDER, f))]
