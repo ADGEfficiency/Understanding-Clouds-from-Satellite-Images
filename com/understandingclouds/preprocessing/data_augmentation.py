@@ -23,7 +23,6 @@ if not os.path.isdir(aug_folder):
 for file in train_images_files:
     for i, aug in enumerate(augs):
         img = plt.imread(os.path.join(TRAIN_IMAGES_FOLDER, file))
-        print('img.shape = ', img.shape)
         masks = get_image_masks(file, TRAIN_IMAGES_FOLDER, train_df, mask_height=320, mask_width=480, rle_height=1400,
                                 rle_width=2100)
         augmented = aug(image=img, mask=masks)
