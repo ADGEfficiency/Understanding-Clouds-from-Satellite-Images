@@ -9,4 +9,5 @@ import sys
 DATA_DIR = ''
 LABELS = ['Fish', 'Flower', 'Gravel', 'Sugar']
 TRAIN_IMAGES_FOLDER = DATA_DIR + 'train_images/'
+AUGMENTED_IMAGES_FOLDER = DATA_DIR + 'images_augmented/'
 TRAIN_DF_FILE = DATA_DIR + 'augmented_train_df.csv'
