@@ -64,7 +64,7 @@ def plot_metrics(training_history):
 train_images_files = [f for f in os.listdir(TRAIN_IMAGES_FOLDER) if
                       os.path.isfile(os.path.join(TRAIN_IMAGES_FOLDER, f))]
 filtered_train_images = list(filter(lambda x: '_' not in x, train_images_files))
-filtered_train_images = filtered_train_images[0:5]
+#filtered_train_images = filtered_train_images[0:5]
 train_images, val_images = train_test_split(filtered_train_images, train_size=0.80)
 print('num of training samples is {}'.format(len(train_images)))
 print('num of val samples is {}'.format(len(val_images)))
