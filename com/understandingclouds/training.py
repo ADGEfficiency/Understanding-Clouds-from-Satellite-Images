@@ -1,6 +1,6 @@
 from utils import get_files_include_augmentations
 from data_generator import DataGenerator
-from constants import TRAIN_IMAGES_FOLDER, TRAIN_DF_FILE, LABELS
+from constants import TRAIN_IMAGES_FOLDER, TRAIN_DF_FILE, LABELS, AUGMENTED_IMAGES_FOLDER
 from metrics import dice_coef_tf, bce_dice_loss
 import time
 import pandas as pd
@@ -16,9 +16,9 @@ def train(model_function, train_images, val_images, epochs, learning_rate=0.001,
     train_df = pd.read_csv(TRAIN_DF_FILE)
     train_images = get_files_include_augmentations(train_images, augmentations, train_images_files)
     train_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, train_images, train_df, 480, 320, 480, 320, LABELS,
-                                         batch_size=1)
+                                         batch_size=16)
     validation_data_generator = DataGenerator(TRAIN_IMAGES_FOLDER, val_images, train_df, 480, 320, 480, 320, LABELS,
-                                              batch_size=1)
+                                              batch_size=16)
     # setup early stopping
     # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5, min_delta=0.01)
 
@@ -61,8 +61,8 @@ def plot_metrics(training_history):
     plt.show()
 
 
-train_images_files = [f for f in os.listdir(TRAIN_IMAGES_FOLDER) if
-                      os.path.isfile(os.path.join(TRAIN_IMAGES_FOLDER, f))]
+train_images_files = [f for f in os.listdir(AUGMENTED_IMAGES_FOLDER) if
+                      os.path.isfile(os.path.join(AUGMENTED_IMAGES_FOLDER, f))]
 filtered_train_images = list(filter(lambda x: '_' not in x, train_images_files))
 #filtered_train_images = filtered_train_images[0:10]
 train_images, val_images = train_test_split(filtered_train_images, train_size=0.80)
