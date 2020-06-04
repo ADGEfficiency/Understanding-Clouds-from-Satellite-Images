@@ -3,7 +3,13 @@ import cv2
 import numpy as np
 import pandas as pd
 from com.understandingclouds.rle import mask_to_rle
-from com.understandingclouds.constants import LABELS
+from com.understandingclouds.constants import LABELS, TEST_IMAGES_FOLDER
+from com.understandingclouds.metrics import dice_coef_tf, bce_dice_loss
+from keras.models import load_model
+from segmentation_models import Unet
+import re
+import glob
+import os
 
 
 def predict_dataset(model, folder, file_list, resize=(320, 480), threshold=0.5):
@@ -47,3 +53,26 @@ def predict_dataset(model, folder, file_list, resize=(320, 480), threshold=0.5):
     rle_list = [mask_to_rle(all_masks[i]) for i in range(all_masks.shape[0])]
     res_df['EncodedPixels'] = rle_list
     return res_df, preds
+
+
+# steps:
+# 1. search the folder for the last saved model and load it
+
+
+def get_newest_trained_model():
+    model_files = glob.glob('best_model*')
+    timestamps = map(lambda filename: int(re.search('\d+', filename).group()), model_files)
+    timestamp_enum = [(i, t) for (i, t) in enumerate(list(timestamps))]
+    timestamp_enum.sort(key=lambda x: x[1])
+    model_file = model_files[timestamp_enum[-1][0]]
+    model = load_model(model_file, custom_objects={'bce_dice_loss': bce_dice_loss, 'dice_coef_tf': dice_coef_tf})
+    return model
+
+
+# 2. run the prediction
+test_images_list = [file for file in os.listdir(TEST_IMAGES_FOLDER) if
+                    os.path.isfile(os.path.join(TEST_IMAGES_FOLDER, file))]
+model = get_newest_trained_model()
+test_df, history = predict_dataset(model, TEST_IMAGES_FOLDER, test_images_list, resize=(350, 525), threshold=0.5)
+# 3. save results to csv
+test_df.to_csv('submission.csv')

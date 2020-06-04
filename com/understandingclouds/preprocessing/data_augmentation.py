@@ -16,7 +16,7 @@ dg = DataGenerator(TRAIN_IMAGES_FOLDER, train_images_files, train_df, 480, 320, 
 train_df = train_df[['Image_Label', 'EncodedPixels']]
 aug_train_df = aug_train_df[['Image_Label', 'EncodedPixels']]
 
-aug_names = ['horizontal_flip', 'vertical_flip', 'rotate45']
+aug_names = ['horizontal_flip', 'vertical_flip', 'rotated_45']
 augs = [HorizontalFlip(p=1), VerticalFlip(p=1), Rotate(limit=(45, 45), p=1)]
 aug_folder = 'images_augmented/'
 if not os.path.isdir(aug_folder):
