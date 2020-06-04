@@ -75,4 +75,6 @@ test_images_list = [file for file in os.listdir(TEST_IMAGES_FOLDER) if
 model = get_newest_trained_model()
 test_df, history = predict_dataset(model, TEST_IMAGES_FOLDER, test_images_list, resize=(350, 525), threshold=0.5)
 # 3. save results to csv
+test_df = test_df[['Image_Label', 'EncodedPixels']]
+test_df.set_index('Image_Label', inplace=True)
 test_df.to_csv('submission.csv')
